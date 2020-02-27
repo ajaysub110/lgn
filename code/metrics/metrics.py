@@ -115,12 +115,11 @@ def synchrony_measure(csv_path,T=1000,t_res=0.1):
                 else:
                     isp_low_j = find_le(sp_times[j],t)
                     phi_jt = compute_phi_t(t,sp_times[j],isp_low_j,T)
-                    print(np.cos((phi_it-phi_jt)/2.0)**2)
                     S_t += np.cos((phi_it-phi_jt)/2.0)**2
-        # print(t,S_t)
+        print(t,S_t)
         S.append(S_t)
     return (2/(n_neurons*(n_neurons-1))) * np.mean(S)
 
 if __name__ == '__main__':
-    # isi_viz('IN_spikes.csv')
-    # print(synchrony_measure('IN_spikes.csv'))    
+    isi_viz('TRN_spikes.csv')
+    print(synchrony_measure('TRN_spikes.csv'))
