@@ -11,14 +11,13 @@ psth_vals = []
 
 for i in range(0,1000,bw):
     psth_vals.append(len([e for e in spike_data if e>=i and e<i+bw])/bw)
-'''
+
 plt.figure(1)
 plt.plot(list(range(0,1000,bw)),psth_vals)
 plt.title('PSTH for ' + fname)
 plt.xlabel('time in ms')
 plt.ylabel('Spike rate')
 plt.show()
-'''
 
 df = pd.DataFrame(psth_vals)
 df.to_csv('psth_'+fname,index=False,header=False)
