@@ -2,6 +2,7 @@ clear all
 close all
 clc
 
+% read csv files
 Data1 = csvread('../../experiments/synchrony/sync/ret_tcr/TCR_spikes_0.csv',0,1);
 spikeTimes1 = Data1(1:1:end);
 Data2 = csvread('../../experiments/synchrony/sync/ret_tcr/TCR_spikes_3.csv',0,1);
@@ -11,14 +12,13 @@ spikeTimes3 = Data3(1:1:end);
 Data4 = csvread('../../experiments/synchrony/sync/ret_tcr/TCR_spikes_9.csv',0,1);
 spikeTimes4 = Data4(1:1:end);
 
+% labels that will be used in plots
 name1 = 'tcr-g0pt1';
 name2 = 'tcr-g0pt4';
 name3 = 'tcr-g0pt7';
 name4 = 'tcr-g1';
 
-%%%%%%%%%%%%RIC PSD
 %population spk histogram
-%
 TotalDuration = 1000;
 spk_count1 = hist(spikeTimes1,0:TotalDuration);%for PSD calculation
 spk_count2 = hist(spikeTimes2,0:TotalDuration);%for PSD calculation
@@ -38,17 +38,20 @@ ylabel('Spike count');
 legend(name1,name2,name3,name4);
 xlabel('Time (ms)');
 xlim([0,1000]);
-%
+
+% smoothen spike count histogram by applying gaussian filter
 spk_count_lowfreq1 = filtfilt(fspecial('gaussian',[1 100],20), 1, spk_count1); %time averaged
 spk_count_lowfreq2 = filtfilt(fspecial('gaussian',[1 100],20), 1, spk_count2); %time averaged
 spk_count_lowfreq3 = filtfilt(fspecial('gaussian',[1 100],20), 1, spk_count3); %time averaged
 spk_count_lowfreq4 = filtfilt(fspecial('gaussian',[1 100],20), 1, spk_count4); %time averaged
-%pwelch parameters
+
+%pwelch (for PSD) parameters
 fs = 1000; %inverse 0.1ms time step
 nfft = 256; noverlap = nfft/2; wind = hamming(nfft);
 count = 1; L = 1;
 dT = 100; t0 = L*nfft/2+1;
 
+% Apply windowed filter and calculate pwelch for each
 while (t0+L*nfft/2) < TotalDuration
     [Pxx1(:,count),F] = pwelch(spk_count1(t0-L*nfft/2:t0+L*nfft/2-1),wind,noverlap,nfft,fs,'psd');
     Pxx1(:,count) = Pxx1(:,count)/sum(Pxx1(:,count));
@@ -63,6 +66,7 @@ while (t0+L*nfft/2) < TotalDuration
     t0 = t0+dT;
 end
 
+% PSD vs frequency plot
 figure(5);
 sgtitle('PSD vs frequency plot');
 subplot(221);
@@ -102,8 +106,7 @@ end
 xlabel('Frequency (Hz)');
 ylabel('Power Spectral Density');
 
-%%%%%%%%%%%calculate correlations between firing rates and frequency /
-%%%%%%%%%%%amplitude
+% Calculate correlations of PSD with frequency and amplitude
 fmin = 20; fmax = 80;
 for n = 1:length(t_fft)
     temp = find(Pxx1(F>fmin,n) == max(Pxx1(F>fmin&F<fmax,n)),1);
@@ -140,9 +143,7 @@ R = corrcoef([fmax2(:) spk_count_lowfreq2(t_fft)']);  corrF(2) = R(1,2);
 R = corrcoef([fmax3(:) spk_count_lowfreq3(t_fft)']);  corrF(3) = R(1,2);
 R = corrcoef([fmax4(:) spk_count_lowfreq4(t_fft)']);  corrF(4) = R(1,2);
 
-%%%%%%%%%%%RIC FIG1&FIG2
-% 
-
+% Plot smoothened no_of_spikes vs time histogram 
 fig1 = figure(1);
 set(fig1,'Position',[50 100 600 300]);
 % subplot(2,1,1);
@@ -156,7 +157,8 @@ plot(0:TotalDuration,fs*spk_count_lowfreq4/80,'y'); xlim([0 TotalDuration]);hold
 xlabel('Time(ms)'); ylabel('Population Rate(Hz)');
 legend(name1,name2,name3,name4);
 title('Filtered spike rate plot');
-% 
+
+% PSD color plot (not being used now. please see total_psd.m file) 
 fig2 = figure(2);
 set(fig2,'Position',[50 100 600 300]);
 subplot(221);
