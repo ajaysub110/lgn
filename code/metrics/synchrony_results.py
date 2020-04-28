@@ -1,3 +1,5 @@
+## RASTER PLOT AND SYNCHRONY MEASURE
+
 # Import libraries
 import numpy as np
 import bisect
@@ -114,7 +116,6 @@ plt.ylabel('Synchrony measure')
 plt.show()
 
 
-'''
 # Spike raster plots
 for i_run,g in enumerate(g_list):
     fig, ax = plt.subplots(math.ceil(M/c),c,sharex=True,sharey=True)
@@ -131,4 +132,3 @@ for i_run,g in enumerate(g_list):
         ax[i,j].scatter(data[:,1],data[:,0],s=1) # plot raster for run
 
 plt.show()
-'''

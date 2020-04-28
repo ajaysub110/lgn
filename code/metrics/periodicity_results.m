@@ -1,43 +1,59 @@
-clear all
+clear
 close all
 clc
 
+TotalDuration = 2000;
+tl = 200;
+th = 1800;
+
 % read csv files
-Data1 = csvread('../../experiments/synchrony/sync/ret_tcr/TCR_spikes_0.csv',0,1);
+Data1 = csvread('../../experiments/sync/ret_tcr/TCR_spikes_2d_2k/TCR_spikes_1.csv',0,1);
 spikeTimes1 = Data1(1:1:end);
-Data2 = csvread('../../experiments/synchrony/sync/ret_tcr/TCR_spikes_3.csv',0,1);
+spikeTimes1 = spikeTimes1(spikeTimes1 > tl);
+spikeTimes1 = spikeTimes1(spikeTimes1 < th);
+Data2 = csvread('../../experiments/sync/ret_tcr/TCR_spikes_2d_2k/TCR_spikes_2.csv',0,1);
 spikeTimes2 = Data2(1:1:end);
-Data3 = csvread('../../experiments/synchrony/sync/ret_tcr/TCR_spikes_6.csv',0,1);
+spikeTimes2 = spikeTimes2(spikeTimes2 > tl);
+spikeTimes2 = spikeTimes2(spikeTimes2 < th);
+Data3 = csvread('../../experiments/sync/ret_tcr/TCR_spikes_2d_2k/TCR_spikes_3.csv',0,1);
 spikeTimes3 = Data3(1:1:end);
-Data4 = csvread('../../experiments/synchrony/sync/ret_tcr/TCR_spikes_9.csv',0,1);
+spikeTimes3 = spikeTimes3(spikeTimes3 > tl);
+spikeTimes3 = spikeTimes3(spikeTimes3 < th);
+Data4 = csvread('../../experiments/sync/ret_tcr/TCR_spikes_2d_2k/TCR_spikes_4.csv',0,1);
 spikeTimes4 = Data4(1:1:end);
+spikeTimes4 = spikeTimes4(spikeTimes4 > tl);
+spikeTimes4 = spikeTimes4(spikeTimes4 < th);
 
 % labels that will be used in plots
 name1 = 'tcr-g0pt1';
-name2 = 'tcr-g0pt4';
-name3 = 'tcr-g0pt7';
-name4 = 'tcr-g1';
+name2 = 'tcr-g0pt2';
+name3 = 'tcr-g0pt3';
+name4 = 'tcr-g0pt4';
 
 %population spk histogram
-TotalDuration = 1000;
 spk_count1 = hist(spikeTimes1,0:TotalDuration);%for PSD calculation
 spk_count2 = hist(spikeTimes2,0:TotalDuration);%for PSD calculation
 spk_count3 = hist(spikeTimes3,0:TotalDuration);%for PSD calculation
 spk_count4 = hist(spikeTimes4,0:TotalDuration);%for PSD calculation
 
 figure(4);
+sgtitle('Spike count histogram plot');
+subplot(221)
 plot(spk_count1, 'r');
-hold on
+title(name1);
+subplot(222)
 plot(spk_count2, 'b');
-hold on
+title(name2);
+subplot(223)
 plot(spk_count3, 'g');
-hold on
+title(name3);
+subplot(224)
 plot(spk_count4, 'y');
-title('Spike count histogram plot');
+title(name4);
 ylabel('Spike count');
-legend(name1,name2,name3,name4);
+%legend(name1,name2,name3,name4);
 xlabel('Time (ms)');
-xlim([0,1000]);
+xlim([tl,th]);
 
 % smoothen spike count histogram by applying gaussian filter
 spk_count_lowfreq1 = filtfilt(fspecial('gaussian',[1 100],20), 1, spk_count1); %time averaged
@@ -46,20 +62,20 @@ spk_count_lowfreq3 = filtfilt(fspecial('gaussian',[1 100],20), 1, spk_count3); %
 spk_count_lowfreq4 = filtfilt(fspecial('gaussian',[1 100],20), 1, spk_count4); %time averaged
 
 %pwelch (for PSD) parameters
-fs = 1000; %inverse 0.1ms time step
+fs = 500; %inverse 0.1ms time step
 nfft = 256; noverlap = nfft/2; wind = hamming(nfft);
 count = 1; L = 1;
 dT = 100; t0 = L*nfft/2+1;
 
 % Apply windowed filter and calculate pwelch for each
-while (t0+L*nfft/2) < TotalDuration
-    [Pxx1(:,count),F] = pwelch(spk_count1(t0-L*nfft/2:t0+L*nfft/2-1),wind,noverlap,nfft,fs,'psd');
+while (t0+L*nfft/2) < th-tl
+    [Pxx1(:,count),F] = pwelch(spk_count1(t0-L*nfft/2+tl:t0+L*nfft/2-1+tl),wind,noverlap,nfft,fs,'psd');
     Pxx1(:,count) = Pxx1(:,count)/sum(Pxx1(:,count));
-    [Pxx2(:,count),F] = pwelch(spk_count2(t0-L*nfft/2:t0+L*nfft/2-1),wind,noverlap,nfft,fs,'psd');
+    [Pxx2(:,count),F] = pwelch(spk_count2(t0-L*nfft/2+tl:t0+L*nfft/2-1+tl),wind,noverlap,nfft,fs,'psd');
     Pxx2(:,count) = Pxx2(:,count)/sum(Pxx2(:,count));
-    [Pxx3(:,count),F] = pwelch(spk_count3(t0-L*nfft/2:t0+L*nfft/2-1),wind,noverlap,nfft,fs,'psd');
+    [Pxx3(:,count),F] = pwelch(spk_count3(t0-L*nfft/2+tl:t0+L*nfft/2-1+tl),wind,noverlap,nfft,fs,'psd');
     Pxx3(:,count) = Pxx3(:,count)/sum(Pxx3(:,count));
-    [Pxx4(:,count),F] = pwelch(spk_count4(t0-L*nfft/2:t0+L*nfft/2-1),wind,noverlap,nfft,fs,'psd');
+    [Pxx4(:,count),F] = pwelch(spk_count4(t0-L*nfft/2+tl:t0+L*nfft/2-1+tl),wind,noverlap,nfft,fs,'psd');
     Pxx4(:,count) = Pxx4(:,count)/sum(Pxx4(:,count));
     t_fft(count) = t0;
     count = count+1;
@@ -67,10 +83,11 @@ while (t0+L*nfft/2) < TotalDuration
 end
 
 % PSD vs frequency plot
+range = 1:14;
 figure(5);
 sgtitle('PSD vs frequency plot');
 subplot(221);
-for i=1:8
+for i=range
     plot(F,Pxx1(:,i));
     title(name1)
     xlim([0,100]);
@@ -79,7 +96,7 @@ end
 xlabel('Frequency (Hz)');
 ylabel('Power Spectral Density');
 subplot(222);
-for i=1:8
+for i=range
     plot(F,Pxx2(:,i));
     title(name2)
     xlim([0,100]);
@@ -88,7 +105,7 @@ end
 xlabel('Frequency (Hz)');
 ylabel('Power Spectral Density');
 subplot(223);
-for i=1:8
+for i=range
     plot(F,Pxx3(:,i));
     title(name3)
     xlim([0,100]);
@@ -97,7 +114,7 @@ end
 xlabel('Frequency (Hz)');
 ylabel('Power Spectral Density');
 subplot(224);
-for i=1:8
+for i=range
     plot(F,Pxx4(:,i));
     title(name4)
     xlim([0,100]);
@@ -150,10 +167,10 @@ set(fig1,'Position',[50 100 600 300]);
 % plot(firings(:,1),firings(:,2),'.'); xlim([1 TotalDuration]);
 % xlabel('Time(ms)'); ylabel('#Unit');
 % subplot(2,1,2); hold on;
-plot(0:TotalDuration,fs*spk_count_lowfreq1/80,'r'); xlim([0 TotalDuration]);hold on
-plot(0:TotalDuration,fs*spk_count_lowfreq2/80,'b'); xlim([0 TotalDuration]);hold on
-plot(0:TotalDuration,fs*spk_count_lowfreq3/80,'g'); xlim([0 TotalDuration]);hold on
-plot(0:TotalDuration,fs*spk_count_lowfreq4/80,'y'); xlim([0 TotalDuration]);hold on
+plot(0:TotalDuration,fs*spk_count_lowfreq1/80,'r'); xlim([tl th]);hold on
+plot(0:TotalDuration,fs*spk_count_lowfreq2/80,'b'); xlim([tl th]);hold on
+plot(0:TotalDuration,fs*spk_count_lowfreq3/80,'g'); xlim([tl th]);hold on
+plot(0:TotalDuration,fs*spk_count_lowfreq4/80,'y'); xlim([tl th]);hold on
 xlabel('Time(ms)'); ylabel('Population Rate(Hz)');
 legend(name1,name2,name3,name4);
 title('Filtered spike rate plot');
@@ -167,6 +184,7 @@ xlim([t_fft(1) t_fft(end)]); %ylim([1 50]);
 xlabel('Time(ms)'); ylabel('Frequency(Hz)');
 title('PSD','FontSize',16); title(name1);
 ylim([0 50]);
+colormap(parula(128));
 colorbar;
 subplot(222);
 p = pcolor(t_fft,F,Pxx2); set(p,'LineStyle','none');
